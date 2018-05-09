@@ -1,15 +1,25 @@
+import binascii
+
 import challenge3
 
-if __name__ == '__main__':
+
+def import_file(file):
     data = []
-    with open(r'challenge4_data.txt') as file:
-        for line in file:
-            data.append(line.strip())
-    for line in data:
-        try:
-            results = challenge3.single_byte_xor(line)
-        except UnicodeDecodeError:
-            continue
-        #if len(results) > 0:
-            #print(results.pop(min(results)).decode())
-        print(line, ': ', results)
+    with open(file, 'r') as f:
+        for line in f:
+            data.append(binascii.unhexlify(line.strip()))
+    return data
+
+
+def detect_single_byte_xor(lines):
+    results = {}
+    for line in lines:
+        decrypted = challenge3.single_byte_xor(line)
+        results[decrypted[0]] = decrypted[1]
+        # print(decrypted)
+    best = max(results)
+    return best, results[best]
+
+
+if __name__ == '__main__':
+    print(detect_single_byte_xor(import_file('challenge4_data.txt')))

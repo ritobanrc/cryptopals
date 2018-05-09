@@ -1,46 +1,41 @@
 import binascii
-from collections import Counter
-import csv
 
 
-def load_frequencies(filename):
-    reader = csv.reader(open(filename))
-    frequencies = {}
-    for row in reader:
-        frequencies[row[0].lower()] = float(row[1])/100
-    return frequencies
-
-
-def single_byte_xor(hexstr):
-    frequencies = load_frequencies('frequencies.csv')
-    ciphertext = binascii.unhexlify(hexstr)
+def single_byte_xor(ciphertext):
     results = {}
-    for i in range(0, 128):
+    for i in range(0, 256):
         c = chr(i)
         plaintext = bytearray([a ^ b for a, b in zip(ciphertext, [i]*len(ciphertext))])
-        if not all(char.isprintable() for char in plaintext.decode()):
-            continue
-        error = check_error(plaintext.lower(), frequencies)
-        if error < 0.8:
-            results[error] = plaintext
-        #print(c, ": error: ", error, ' plaintext: ', plaintext)
-    return results
+        score = compute_score(plaintext.lower())
+        results[score] = plaintext
+        # print(c, ": error: ", score, ' plaintext: ', plaintext)
+    if len(results) > 0:
+        best = max(results)
+        return best, results[best]
 
 
-def check_error(plaintext, frequencies):
-    counter = Counter(plaintext)
-    total_error = 0
-    if sum(chr(char).isalpha() for char in plaintext)/len(plaintext) < .7: # if less than 70% are letters
-        total_error += 1
-    if sum(chr(char).isspace() for char in plaintext)/len(plaintext) > 0.05:
-        total_error -= 0.5
-    for char, count in counter.most_common():
-        if chr(char) not in frequencies:
-            continue
-        total_error += abs(float(count)/len(plaintext)-frequencies[chr(char)])
-    return total_error
+def compute_score(plaintext):
+    score = 0
+    # From http://www.data-compression.com/english.html
+    frequencies = {
+        'a': 0.0651738, 'b': 0.0124248, 'c': 0.0217339,
+        'd': 0.0349835, 'e': 0.1041442, 'f': 0.0197881,
+        'g': 0.0158610, 'h': 0.0492888, 'i': 0.0558094,
+        'j': 0.0009033, 'k': 0.0050529, 'l': 0.0331490,
+        'm': 0.0202124, 'n': 0.0564513, 'o': 0.0596302,
+        'p': 0.0137645, 'q': 0.0008606, 'r': 0.0497563,
+        's': 0.0515760, 't': 0.0729357, 'u': 0.0225134,
+        'v': 0.0082903, 'w': 0.0171272, 'x': 0.0013692,
+        'y': 0.0145984, 'z': 0.0007836, ' ': 0.1918182}
+    for letter in plaintext:
+        c = chr(letter).lower()
+        if c in frequencies:
+            score += frequencies[c]
+        else:
+            score -= 0.5
+    return score
 
 
 if __name__ == '__main__':
-    results = single_byte_xor('1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736')
-    print(results.pop(min(results)).decode())
+    output = single_byte_xor(binascii.unhexlify('1b37373331363f78151b7f2b783431333d78397828372d363c78373e783a393b3736'))
+    print(output)
