@@ -9,7 +9,7 @@ def decrypt_aes(ciphertext, key):
 
 if __name__ == '__main__':
     file_bytes = []
-    for line in ohpen('challenge7_data.txt').readlines():
+    for line in open('challenge7_data.txt').readlines():
         line_bytes = binascii.a2b_base64(line.strip())
         file_bytes.append(line_bytes)
     ciphertext = b''.join(file_bytes)
