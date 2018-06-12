@@ -1,51 +1,51 @@
 import random
-import binascii
+
 from Crypto.Cipher import AES
+
 import challenge10
 import challenge9
 
 
-def generate_random_key():
-    return bytes([random.randint(0, 255) for _ in range(0,16)])
+def random_string(length):
+    return bytes([random.randint(0, 255) for _ in range(length)])
 
 
 def encrypt_random(plaintext):
-    key = generate_random_key()
-    c = random.randint(5,10)
-    plaintext = bytes([random.randint(0, 255) for _ in range(0, c)]) + plaintext \
-                + bytes([random.randint(0,255) for _ in range(0, c)])
+    bytes_to_add = random.randint(5, 10)
+    plaintext = challenge9.pkcs7padding(random_string(bytes_to_add) + plaintext + random_string(bytes_to_add))
     ecb = random.randint(0, 1)
-    if ecb == 1:
-        print('ecb', end='')
-        aes = AES.new(key)
-        plaintext = challenge9.pkcs7padding(plaintext)
-        return aes.encrypt(plaintext), ecb
+    if ecb:
+        aes = AES.new(random_string(16))
+        ciphertext = aes.encrypt(plaintext)
     else:
-        print('cbc', end='')
-        return challenge10.aes_cbc_encrypt(plaintext, key, bytes([random.randint(0, 255) for _ in range(16)])), ecb
+        ciphertext = challenge10.aes_cbc_encrypt(plaintext, random_string(16), random_string(16))
+    return ciphertext, (ecb == 1)
 
 
-def detect_ecb_aes(line):
-    strings = set()
+def guess_ecb(ciphertext):
+    blocks = set()
     duplicates = 0
-    block_size = 1
-    for i in range(len(line) - block_size):
-        s = line[i:i+block_size]
-        if strings.__contains__(s):
+    for i in range(0, len(ciphertext) - 16, 16):
+        block = ciphertext[i:i + 16]
+        if block in blocks:
             duplicates += 1
-        else:
-            strings.add(s)
-    return duplicates
+        blocks.add(block)
+    return duplicates > 0
+
+
+def main():
+    # Challenge 11 Data
+    # Accio Deathly Hallows by Hank Green
+    # 0 is cbc, 1 is ecb
+    plaintext = ''.join(open('challenge11_data.txt').readlines()).encode()
+    for i in range(1000):
+        ciphertext, ecb = encrypt_random(plaintext)
+        guess = guess_ecb(ciphertext)
+        if guess != ecb:
+            print('Failure')
+            return
+    print('Success')
 
 
 if __name__ == '__main__':
-    for i in range(100):
-        ciphertext, ecb = encrypt_random(b' Now, have the function choose to encrypt under ECB 1/2 the time, and under '
-                                         b'CBC the other half (just use random IVs each time for CBC). Use rand(2) to '
-                                         b'decide which to use.Detect the block cipher mode the function is using each '
-                                         b'time. You should end up with a piece of code that, pointed at a block box '
-                                         b'that might be encrypting ECB or CBC, tells you which one is happening.')
-        if detect_ecb_aes(ciphertext) > 0:
-            print(binascii.b2a_hex(ciphertext), 'ecb')
-        else:
-            print(binascii.b2a_hex(ciphertext), 'cbc')
+    main()
