@@ -14,8 +14,7 @@ def xor(buf1, buf2):
 
 def aes_cbc_encrypt(plaintext, key, iv):
     aes = AES.new(key)
-    plaintext = challenge9.pkcs7padding(plaintext,
-                                        len(plaintext) + (aes.block_size - (len(plaintext) % aes.block_size)))
+    plaintext = challenge9.pkcs7padding(plaintext)
     prev = iv
     ciphertext = b''
     for block in [plaintext[i:i + aes.block_size] for i in range(0, len(plaintext), aes.block_size)]:
@@ -47,4 +46,4 @@ if __name__ == '__main__':
     print(decrypted)
 
     data = b''.join([binascii.a2b_base64(line) for line in open('challenge10_data.txt').readlines()])
-    print(aes_cbc_decrypt(data, key, iv))
+    print(aes_cbc_decrypt(data, key, iv).decode())
