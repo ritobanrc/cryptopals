@@ -35,16 +35,15 @@ def guess_ecb(ciphertext):
 
 def main():
     # Challenge 11 Data
-    # Accio Deathly Hallows by Hank Green
-    # 0 is cbc, 1 is ecb
+    # Chapter 1 of the Fellowship of the Ring from the Internet Archive
     plaintext = ''.join(open('challenge11_data.txt').readlines()).encode()
+    successes = 0
     for i in range(1000):
         ciphertext, ecb = encrypt_random(plaintext)
         guess = guess_ecb(ciphertext)
-        if guess != ecb:
-            print('Failure')
-            return
-    print('Success')
+        if guess == ecb:
+            successes += 1
+    print(successes)
 
 
 if __name__ == '__main__':
