@@ -28,6 +28,30 @@ def guess_block_size(oracle):
     return this_block_size - last_block_size
 
 
+def detect_appened_plaintext_ecb(oracle, block_size):
+    # we need to find the appended text 1 block at a time. Let's start with the first block.
+    known = bytearray(bytes(1) * block_size)
+    print(known)
+    for i in range(0, block_size):
+        short = b'=' * (block_size-i-1)
+        short_encrypted = oracle(short)
+        print('i: ', i, ' ', binascii.hexlify(short_encrypted[:block_size]), '\n==============')
+        for x in range(255):
+            if i != 0:
+                plaintext = bytearray(short)
+                plaintext.append(x)
+                plaintext += known[0:i]
+            else:
+                plaintext = short + bytes(chr(x), encoding='utf-8')
+            ciphertext = oracle(bytes(plaintext))
+            print(plaintext, ': ', binascii.hexlify(ciphertext[:block_size]))
+
+            if ciphertext[:block_size] == short_encrypted[:block_size]:
+                known[i] = x
+                continue
+    print(known)
+
+
 def main():
     # plaintext = ''.join(open('challenge12_data.txt').readlines()).encode()
     guessed_block_size = guess_block_size(encrypt_oracle)
@@ -35,6 +59,9 @@ def main():
     print('Block size: ', guessed_block_size)
     print('ECB: ', guessed_ecb)
 
+    detect_appened_plaintext_ecb(encrypt_oracle, guessed_block_size)
+
 
 if __name__ == '__main__':
+
     main()
