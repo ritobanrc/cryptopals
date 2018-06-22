@@ -1,7 +1,9 @@
-import random
-from Crypto.Cipher import AES
-import challenge9, challenge11
 import binascii
+
+from Crypto.Cipher import AES
+
+import challenge11
+import challenge9
 
 random_key = challenge11.random_string(AES.block_size)
 
@@ -28,28 +30,26 @@ def guess_block_size(oracle):
     return this_block_size - last_block_size
 
 
-def detect_appened_plaintext_ecb(oracle, block_size):
+def decrypt_block(oracle, block_size, prevs):
     # we need to find the appended text 1 block at a time. Let's start with the first block.
     known = bytearray(bytes(1) * block_size)
-    print(known)
     for i in range(0, block_size):
-        short = b'=' * (block_size-i-1)
-        short_encrypted = oracle(short)
-        print('i: ', i, ' ', binascii.hexlify(short_encrypted[:block_size]), '\n==============')
+        short = (b'=' * (block_size - i - 1))
+        short_encrypted = oracle(bytes(short))
+        # print('i: ', i, ' ', binascii.hexlify(short_encrypted[:(len(prevs)+block_size)]), '\n', short)
         for x in range(255):
-            if i != 0:
-                plaintext = bytearray(short)
-                plaintext.append(x)
-                plaintext += known[0:i]
-            else:
-                plaintext = short + bytes(chr(x), encoding='utf-8')
+            plaintext = bytearray()
+            plaintext += short
+            plaintext += prevs
+            plaintext += known[0:i]
+            plaintext.append(x)
             ciphertext = oracle(bytes(plaintext))
-            print(plaintext, ': ', binascii.hexlify(ciphertext[:block_size]))
+            # print(plaintext, ': ', binascii.hexlify(ciphertext[:(len(prevs)+block_size)]))
 
-            if ciphertext[:block_size] == short_encrypted[:block_size]:
+            if ciphertext[len(prevs):(len(prevs) + block_size)] == short_encrypted[len(prevs):(len(prevs) + block_size)]:
                 known[i] = x
                 continue
-    print(known)
+    return bytes(known)
 
 
 def main():
@@ -58,8 +58,12 @@ def main():
     guessed_ecb = challenge11.guess_ecb(encrypt_oracle(b'YELLOW SUBMARINEYELLOW SUBMARINE'))
     print('Block size: ', guessed_block_size)
     print('ECB: ', guessed_ecb)
-
-    detect_appened_plaintext_ecb(encrypt_oracle, guessed_block_size)
+    prevs = bytearray()
+    block_n = 0
+    for i in range(9):
+        prevs += decrypt_block(encrypt_oracle, guessed_block_size, prevs)
+        block_n += 1
+    print(prevs.decode())
 
 
 if __name__ == '__main__':
