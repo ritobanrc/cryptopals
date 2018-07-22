@@ -31,7 +31,7 @@ def guess_block_size(oracle):
     this_block_size = 0
     length = 1
     while last_block_size == 0 or this_block_size == last_block_size:
-        last_block_size = this_block_size
+        last_block_size = this_block_size   
         this_block_size = len(oracle(b'A' * length))
         length += 1
     return this_block_size - last_block_size
