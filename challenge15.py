@@ -2,7 +2,10 @@ from struct import pack
 
 
 def strip_pkcs7padding(plaintext):
-    plaintext = bytearray(plaintext, encoding='utf-8')
+    try:
+        plaintext = bytearray(plaintext, encoding='utf-8')
+    except TypeError:
+        plaintext = bytearray(plaintext)
     pad_length = plaintext[-1]
     padding = pack('=b', pad_length)*pad_length
     if plaintext[-pad_length:] != padding:
