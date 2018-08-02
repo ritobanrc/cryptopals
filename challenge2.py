@@ -2,13 +2,13 @@
 Fixed XOR
 """
 
-import sys
+import warnings
 import binascii
 
 
-def fixed_xor(buf1, buf2):
-    if len(buf1) != len(buf2):
-        print("fixed_xor - buf1 and buf2 must be of equal length", file=sys.stderr)
+def fixed_xor(buf1, buf2, ignore_warnings=False):
+    if len(buf1) != len(buf2) and not ignore_warnings:
+        warnings.warn('fixed_xor - buf1 and buf2 should be of equal length')
     return bytearray([a ^ b for a, b, in zip(buf1, buf2)])
 
 

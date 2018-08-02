@@ -26,3 +26,7 @@ def print_split_blocks(text):
 
 def get_index(block_n, char_id):
     return block_n * 16 + char_id
+
+
+def split_blocks(text):
+    return [text[i:i+16] for i in range(0, len(text), 16)]
