@@ -7,7 +7,7 @@ def strip_pkcs7padding(plaintext):
     except TypeError:
         plaintext = bytearray(plaintext)
     pad_length = plaintext[-1]
-    padding = pack('=b', pad_length)*pad_length
+    padding = pack('=B', pad_length)*pad_length
     if plaintext[-pad_length:] != padding:
         raise ValueError
     return plaintext[:-pad_length]
