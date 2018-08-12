@@ -1,6 +1,6 @@
-import sys
-import os
 import binascii
+import os
+import sys
 from math import ceil
 
 
@@ -30,3 +30,7 @@ def get_index(block_n, char_id):
 
 def split_blocks(text):
     return [text[i:i+16] for i in range(0, len(text), 16)]
+
+
+def clear():
+    os.system('cls' if os.name == 'nt' else 'clear')
