@@ -54,7 +54,9 @@ def main():
     seed_mt(0)
     outfile = open('challenge21_out.txt', 'w+')
     for i in range(1000):
-        outfile.write(str(extract_number()))
+        number = extract_number() % 100
+        print(number)
+        outfile.write(str(number))
         outfile.write(', ')
 
 
