@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 import sys
 
 w, n, m, r = 32, 624, 397, 31
@@ -8,53 +10,53 @@ a = 0x9908B0DF
 f = 1812433253
 l = 18
 
-MT = [0] * n
-index = n + 1
-lower_mask = (1 << r) - 1  # the binary number r 1s
-upper_mask = 1 << r
-
-
-def seed_mt(seed):
-    global index
-    index = n
-    MT[0] = seed
-    for i in range(1, n):
-        MT[i] = int(d & (f * (MT[i - 1] ^ (MT[i - 1] >> 30)) + i))
-
-
-def extract_number():
-    global index
-    if index >= n:
-        if index > n:
-            sys.stderr.write('error: Generator was never seeded')
-            return
-        twist()
-    y = MT[index]
-    y = y ^ ((y >> u) & d)
-    y = y ^ ((y << s) & b)
-    y = y ^ ((y << t) & c)
-    y = y ^ (y >> l)
-
-    index = index + 1
-    return d & y
-
-
-def twist():
-    global index
-    for i in range(0, n):
-        x = (MT[i] & upper_mask) + (MT[(i + 1) % n] & lower_mask)
-        xA = x >> 1
-        if x % 2 != 0:
-            xA = xA ^ a
-        MT[i] = MT[(i + m) % n] ^ xA
-    index = 0
-
-
+class MersenneTwister:
+    def __init__(self):
+        self.MT = [0] * n
+        self.index = n + 1
+        self.lower_mask = (1 << r) - 1  # the binary number r 1s
+        self.upper_mask = 1 << r
+    
+    
+    def seed_mt(self, seed):
+        self.index = n
+        self.MT[0] = seed
+        for i in range(1, n):
+            self.MT[i] = int(d & (f * (self.MT[i - 1] ^ (self.MT[i - 1] >> 30)) + i))
+    
+    
+    def extract_number(self):
+        if self.index >= n:
+            if self.index > n:
+                sys.stderr.write('error: Generator was never seeded')
+                return
+            self.twist()
+        y = self.MT[self.index]
+        y = y ^ ((y >> u) & d)
+        y = y ^ ((y << s) & b)
+        y = y ^ ((y << t) & c)
+        y = y ^ (y >> l)
+    
+        self.index = self.index + 1
+        return d & y
+    
+    
+    def twist(self):
+        for i in range(0, n):
+            x = (self.MT[i] & self.upper_mask) + (self.MT[(i + 1) % n] & self.lower_mask)
+            xA = x >> 1
+            if x % 2 != 0:
+                xA = xA ^ a
+            self.MT[i] = self.MT[(i + m) % n] ^ xA
+        self.index = 0
+    
+    
 def main():
-    seed_mt(0)
+    rng = MersenneTwister()
+    rng.seed_mt(42)
     outfile = open('challenge21_out.txt', 'w+')
     for i in range(1000):
-        number = extract_number() % 100
+        number = rng.extract_number() % 100
         print(number)
         outfile.write(str(number))
         outfile.write(', ')

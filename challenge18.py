@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 from Crypto.Cipher import AES
 from struct import pack
 from util import *

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import random
 
 from challenge11 import random_string

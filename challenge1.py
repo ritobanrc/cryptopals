@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 """
 Convert hex to base64
 """

@@ -1,3 +1,4 @@
+#!/usr/bin/env python3
 import challenge19
 import challenge3
 
