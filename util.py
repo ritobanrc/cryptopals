@@ -33,5 +33,10 @@ def split_blocks(text):
     return [text[i:i+16] for i in range(0, len(text), 16)]
 
 
+
+def print_split_n(text, n):
+    print('|'.join([text[i:i+n] for i in range(0, len(text), n)]))
+
+
 def clear():
     os.system('cls' if os.name == 'nt' else 'clear')
