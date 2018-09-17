@@ -25,7 +25,7 @@ def break_repeating_key_xor(ciphertext):
     # print(key_size_dists)
     key_sizes_to_test = [key_size_dists.pop(min(key_size_dists)) for _ in range(5)]
     # print(key_sizes_to_test)
-    key_sizes_to_test = [29]
+    # key_sizes_to_test = [29]
     best_key_size = -1
     best_score = -inf
     best_plaintext = bytearray()
