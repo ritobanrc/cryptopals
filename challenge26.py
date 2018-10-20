@@ -20,7 +20,6 @@ def build_profile(userdata):
     return ciphertext
 
 
-# TODO: implement this using ctr instead of cbc
 def authenticate(ciphertext):
     plaintext = aes_ctr_crypt(ciphertext, random_key, random_nonce)
     info_dict = {}
