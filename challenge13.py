@@ -12,7 +12,7 @@ def create_obj(str):
     obj = {}
     for pair_str in kv_pairs:
         k, v = pair_str.split(b'=')
-        obj[k] = v
+        obj[bytes(k)] = v
     return obj
 
 

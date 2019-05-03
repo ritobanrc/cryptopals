@@ -5,10 +5,11 @@ from Crypto.Cipher import AES
 
 import challenge10
 import challenge9
+from os import urandom
 
 
 def random_string(length):
-    return bytes([random.randint(0, 255) for _ in range(length)])
+    return bytes(urandom(length))
 
 
 def encrypt_random(plaintext):
