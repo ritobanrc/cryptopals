@@ -11,7 +11,12 @@ except NameError:
 def _left_rotate(n, b):
     return ((n << b) | (n >> (32 - b))) & 0xffffffff
     
-def sha1(message):
+def sha1(message, ml_pad = 0,
+         h0 = 0x67452301,
+         h1 = 0xEFCDAB89,
+         h2 = 0x98BADCFE,
+         h3 = 0x10325476,
+         h4 = 0xC3D2E1F0):
     """SHA-1 Hashing Function
 
     A custom SHA-1 hashing function implemented entirely in Python.
@@ -20,14 +25,9 @@ def sha1(message):
         message: The input message string to hash.
 
     Returns:
-        A hex SHA-1 digest of the input message.
+        A SHA-1 digest of the input message.
     """
     # Initialize variables:
-    h0 = 0x67452301
-    h1 = 0xEFCDAB89
-    h2 = 0x98BADCFE
-    h3 = 0x10325476
-    h4 = 0xC3D2E1F0
     
     # Pre-processing:
     original_byte_len = len(message)
@@ -38,15 +38,20 @@ def sha1(message):
     # append 0 <= k < 512 bits '0', so that the resulting message length (in bits)
     #    is congruent to 448 (mod 512)
     message += b'\x00' * ((56 - (original_byte_len + 1) % 64) % 64)
+
     
     # append length of message (before pre-processing), in bits, as 64-bit big-endian integer
-    message += struct.pack(b'>Q', original_bit_len)
+    if ml_pad == 0:
+        ml_pad = original_bit_len
+    message += struct.pack(b'>Q', ml_pad)
+    # print('\n-------MESSAGE------\n', len(message), message, '\n-------MESSAGE------\n')
     # Process the message in successive 512-bit chunks:
     # break message into 512-bit chunks
     for i in range(0, len(message), 64):
         w = [0] * 80
         # break chunk into sixteen 32-bit big-endian words w[i]
         for j in range(16):
+            # print(message[i + j*4:i+j*4 + 4])
             w[j] = struct.unpack(b'>I', message[i + j*4:i + j*4 + 4])[0]
         # Extend the sixteen 32-bit words into eighty 32-bit words:
         for j in range(16, 80):
@@ -77,15 +82,21 @@ def sha1(message):
             a, b, c, d, e = ((_left_rotate(a, 5) + f + e + k + w[i]) & 0xffffffff, 
                             a, _left_rotate(b, 30), c, d)
     
-        # sAdd this chunk's hash to result so far:
+        # Add this chunk's hash to result so far:
         h0 = (h0 + a) & 0xffffffff
         h1 = (h1 + b) & 0xffffffff 
         h2 = (h2 + c) & 0xffffffff
         h3 = (h3 + d) & 0xffffffff
         h4 = (h4 + e) & 0xffffffff
-    
+   
+
+    # print(hex(h0),
+          # hex(h1),
+          # hex(h2),
+          # hex(h3),
+          # hex(h4))
     # Produce the final hash value (big-endian):
-    return '%08x%08x%08x%08x%08x' % (h0, h1, h2, h3, h4)
+    return struct.pack('>IIIII', h0, h1, h2, h3, h4)
     
 if __name__ == '__main__':
     # Imports required for command line parsing. No need for these elsewhere
@@ -123,4 +134,5 @@ if __name__ == '__main__':
         data = args.input
     
     # Show the final digest
-    print('sha1-digest:', sha1(data))
+    import binascii
+    print('sha1-digest:', binascii.hexlify(sha1(bytes(data, encoding='utf8'))).decode())
