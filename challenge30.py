@@ -1,17 +1,12 @@
 #!/usr/bin/python3
-import struct
 import random
 import binascii
-from challenge28 import secret_prefix_mac
-from sha1 import sha1
+import struct
+from md4 import MD4
 
-def get_sha1_padding(message):
-    original_byte_len = len(message)
-    original_bit_len = original_byte_len * 8
-    message += b'\x80'
-    message += b'\x00' * ((56 - (original_byte_len + 1) % 64) % 64)
-    message += struct.pack(b'>Q', original_bit_len)
-    return message
+def secret_prefix_mac(message, key):
+    md4 = MD4(key + message)
+    return md4.digest()
 
 data = b'comment1=cooking%20MCs;userdata=foo;comment2=%20like%20a%20pound%20of%20bacon'
 with open('/usr/share/dict/words') as f:
@@ -21,17 +16,6 @@ def get_mac():
     mac = secret_prefix_mac(data, prefix)
     return mac
 
-def forge_sha1_mac(original_message, mac, append):
-    h0, h1, h2, h3, h4 = struct.unpack('>IIIII', mac)
-    for prefix_length in range(1, 20):
-        print(f'PREFIX LENGTH: {prefix_length}')
-        to_pad = b'a' * prefix_length  + original_message
-        padded = get_sha1_padding(to_pad)
-        new_mac = sha1(append, 8*(len(padded) + len(append)), h0, h1, h2, h3, h4)
-        new_plaintext = padded[prefix_length:] + append
-        if authenticate(new_plaintext, new_mac):
-            return new_plaintext, new_mac
-    return b'', b''
 
 def authenticate(plaintext, mac, output = True):
     from urllib.parse import quote, unquote
@@ -50,13 +34,35 @@ def authenticate(plaintext, mac, output = True):
         if output: print('Logged in as regular user')
         return False
 
+def get_md4_padding(message):
+    length = struct.pack('<Q', len(message) * 8)
+    message += b'\x80'
+    message += bytes((56 - len(message) % 64) % 64)
+    message += length
+    return message
+
+def forge_sha1_mac(original_message, mac, append):
+    A, B, C, D = struct.unpack('<IIII', mac)
+    for prefix_length in range(1, 20):
+        print(f'PREFIX LENGTH: {prefix_length}')
+        to_pad = b'a' * prefix_length  + original_message
+        padded = get_md4_padding(to_pad)
+
+        md4 = MD4(append, len(padded) + len(append), A, B, C, D)
+        new_mac = md4.digest()
+
+        new_plaintext = padded[prefix_length:] + append
+        if authenticate(new_plaintext, new_mac):
+            return new_plaintext, new_mac
+    return b'', b''
+
+
 def main():
     mac = get_mac()
     print('Original MAC: ', binascii.hexlify(mac))
     authenticate(data, mac)
     new_plaintext, new_mac = forge_sha1_mac(data, mac, b';admin=true')
     authenticate(new_plaintext, new_mac)
-
 
 if __name__ == '__main__':
     main()
