@@ -35,7 +35,7 @@ def insecure_compare(buf1, buf2):
     for b1, b2 in zip(buf1, buf2):
         if not b1 == b2:
             return False
-        time.sleep(0.030)
+        time.sleep(0.005)
     return True
 
 if __name__ == '__main__':
